@@ -1,9 +1,9 @@
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .models import Post
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-
+from django.contrib.auth.models import User
 
 def home(request):
     context = {
@@ -21,6 +21,18 @@ class PostListView(ListView):
     ordering = ['-date_posted']
     paginate_by = 5
 
+
+class UserPostListView(ListView):
+    model = Post
+    # <app>/<model>_<view>.html  is the default name which postListView.as_view() will look for. to change that, set
+    # template_name
+    template_name = 'blog/user_posts.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username=self.kwargs.get('username'))
+        return Post.objects.filter(author = user).order_by('-date_posted')
 
 
 class PostDetailView(DetailView):   # this will look for blog/post_detail.html template by default
